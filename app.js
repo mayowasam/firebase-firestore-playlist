@@ -13,7 +13,7 @@ function renderCafe(element) {
     li.appendChild(city)
     li.appendChild(cross)
 
-    //add to ul
+    //add li to ul
     cafeList.appendChild(li)
 
     //add a key to li
@@ -23,41 +23,81 @@ function renderCafe(element) {
     name.textContent = element.data().name;
     city.textContent = element.data().city
     cross.textContent = 'x'
-    
-    
-    
+
+
+
     // deleting
-    
-    cross.addEventListener('click',(e) => {
+
+    cross.addEventListener('click', (e) => {
         e.stopPropagation()
         let id = e.target.parentElement.getAttribute('element-id');
         db.collection('cafes').doc(id).delete()
     })
 }
 
-//getting data
-db.collection('cafes').get()
-    .then(newdoc => {
-        console.log(newdoc.docs)
-        newdoc.docs.forEach(element => {
-            console.log(element.data())
-            renderCafe(element)
+// // getting data
+// db.collection('cafes').get()
+//     .then(newdoc => {
+//         console.log(newdoc.docs)
+//         newdoc.docs.forEach(element => {
+//             console.log(element.data())
+//             renderCafe(element)
 
-        });
-    })
+//         });
+//     })
+
+
+// //making queries
+// db.collection('cafes').where('city','>','m').get()
+//     .then(newdoc => {
+//         console.log(newdoc.docs)
+//         newdoc.docs.forEach(element => {
+//             console.log(element.data())
+//             renderCafe(element)
+
+//         });
+//     })
+
+// //ordering data
+// db.collection('cafes').where('city','==','london').orderBy('name').get()
+//     .then(newdoc => {
+//         console.log(newdoc.docs)
+//         newdoc.docs.forEach(element => {
+//             console.log(element.data())
+//             renderCafe(element)
+
+//         });
+//     })
 
 //saving data
 
-form.addEventListener('submit',(e) => {
+form.addEventListener('submit', (e) => {
     e.preventDefault();
     db.collection('cafes').add({
-        name:form.name.value,
-        city:form.city.value
+        name: form.name.value,
+        city: form.city.value
     });
     form.name.value = ''
     form.city.value = ''
 
-   console.log(form.name.value) 
-   console.log(form.city.value) 
-   
-} )
+    console.log(form.name.value)
+    console.log(form.city.value)
+
+})
+
+//realtime data
+db.collection('cafes').onSnapshot(newDoc => {
+    let changes = newDoc.docChanges();
+    console.log(changes);
+    changes.forEach(change => {
+        console.log(change.doc.data())
+        if (change.type == "added") {
+            renderCafe(change.doc)
+        }
+        else if( change.type == 'removed'){
+            let li = cafeList.querySelector('[data-id=' + change.doc.id + ']');
+             cafeList.removeChild(li)
+        }
+           
+    })
+})
